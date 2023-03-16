@@ -1,32 +1,51 @@
 package com.saucedemo;
 
-import org.junit.Before;
-import org.junit.Test;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
+
 public class FirstCaseTest {
 
-    private static ConfigurationProperties ConfProperties;
+    private static WebDriver driver;
+    private static final Logger logger = LoggerFactory.getLogger(FirstCaseTest.class);
 
-    @Before
-    public void setup() {
+    @BeforeAll
+    static void setupAll() {
+        logger.info("start setupAll");
         System.setProperty("webdriver.chrome.driver", ConfigurationProperties.getProperty("chromedriver"));
-        //создание экземпляра драйвера
-        WebDriver driver = new ChromeDriver();
+        ChromeOptions option = new ChromeOptions();
+        option.addArguments("--remote-allow-origins=*");
+        WebDriverManager.chromedriver().setup();
+        driver = new ChromeDriver(option);
+    }
+
+
+    @BeforeEach
+    public void setup() {
         //окно разворачивается на полный экран
         driver.manage().window().maximize();
         //задержка на выполнение теста = 10 сек.
         driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        //получение ссылки на страницу входа из файла настроек
-        driver.get(ConfigurationProperties.getProperty("productpage")); }
+    }
 
     @Test
     public void successfullyBuyTest() {
+        driver.get(ConfigurationProperties.getProperty("productpage"));
+    }
 
-
+    @Test
+    public void failedLoginTest(){
+     logger.info("start failed login test");
+     driver.get(ConfigurationProperties.getProperty("loginpage"));
     }
 
 }
