@@ -10,15 +10,14 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 
 
 public class FirstCaseTest {
 
     private static WebDriver driver;
-    private static final Logger logger = LoggerFactory.getLogger(FirstCaseTest.class);
+    static final Logger logger= LoggerFactory.getLogger(FirstCaseTest.class);
     public static LoginPage loginPage;
-
+    public static ProductsPage productsPage;
 
     @BeforeAll
     static void setupAll() {
@@ -29,29 +28,34 @@ public class FirstCaseTest {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver(option);
         loginPage = new LoginPage(driver);
+        productsPage = new ProductsPage(driver);
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
     }
-
 
     @Test
     public void successfullyBuyTest() {
+        doLogin(ConfigurationProperties.getProperty("login"), ConfigurationProperties.getProperty("password"));
         driver.get(ConfigurationProperties.getProperty("productpage"));
+        productsPage.clickButtonAddToCart();
+        productsPage.clickBucketSymbol();
+
+
     }
 
     @Test
     public void failedLoginTest() {
         logger.info("start failed login test");
-
-        driver.get(ConfigurationProperties.getProperty("loginpage"));
-        loginPage.inputLogin(ConfigurationProperties.getProperty("login"));
-        loginPage.inputPassword(ConfigurationProperties.getProperty("password"));
-        loginPage.clickLoginBtn();
-
+        doLogin(ConfigurationProperties.getProperty("wrong_login"), ConfigurationProperties.getProperty("wrong_password"));
         String actualErrorMessage = loginPage.getErrorMessage();
         String expectedErrrorMessage = "Epic sadface: Username and password do not match any user in this service";
-
         Assertions.assertEquals(actualErrorMessage, expectedErrrorMessage);
+    }
+
+    private void doLogin(String login, String password){
+        driver.get(ConfigurationProperties.getProperty("loginpage"));
+        loginPage.inputLogin(login);
+        loginPage.inputPassword(password);
+        loginPage.clickLoginBtn();
     }
 
 }
