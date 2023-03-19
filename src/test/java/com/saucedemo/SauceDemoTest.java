@@ -2,6 +2,7 @@ package com.saucedemo;
 
 import com.saucedemo.pages.*;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -9,11 +10,13 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 
-public class FirstCaseTest {
 
+
+public class SauceDemoTest {
     private static WebDriver driver;
-    static final Logger logger = LoggerFactory.getLogger(FirstCaseTest.class);
+    static final Logger logger = LoggerFactory.getLogger(SauceDemoTest.class);
     public static LoginPage loginPage;
     public static ProductsPage productsPage;
     public static CartPage cartPage;
@@ -24,13 +27,13 @@ public class FirstCaseTest {
     @BeforeAll
     static void setupAll() {
         logger.info("start setupAll");
-
         System.setProperty("webdriver.chrome.driver", ConfigurationProperties.getProperty("chromedriver"));
         ChromeOptions option = new ChromeOptions();
         option.addArguments("--remote-allow-origins=*");
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver(option);
         driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
 
         loginPage = new LoginPage(driver);
         productsPage = new ProductsPage(driver);
@@ -60,7 +63,7 @@ public class FirstCaseTest {
 
         String actualText = checkoutComplete.getCompleteText();
         String expectedText = "Thank you for your order!";
-        Assertions.assertEquals(expectedText, actualText);
+        reportAllure(actualText, expectedText);
 
         logger.info("finish add to cart test");
     }
@@ -71,7 +74,7 @@ public class FirstCaseTest {
         doLogin(ConfigurationProperties.getProperty("wrong_login"), ConfigurationProperties.getProperty("wrong_password"));
         String actualErrorMessage = loginPage.getErrorMessage();
         String expectedErrrorMessage = "Epic sadface: Username and password do not match any user in this service";
-        Assertions.assertEquals(expectedErrrorMessage, actualErrorMessage);
+        reportAllure(actualErrorMessage, expectedErrrorMessage);
     }
 
     private void doLogin(String login, String password) {
@@ -79,6 +82,11 @@ public class FirstCaseTest {
         loginPage.inputLogin(login);
         loginPage.inputPassword(password);
         loginPage.clickLoginBtn();
+    }
+
+    @Step
+    public void reportAllure(String actualErrorMessage, String expectedErrrorMessage) {
+        Assertions.assertEquals(expectedErrrorMessage, actualErrorMessage);
     }
 
     @AfterAll
